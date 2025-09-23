@@ -39,7 +39,7 @@ int main()
 
     for (int i = 1; i <= cantidadArchivos; i++) { // En este ciclo la idea es realizar los procesos de desencriptación archivo por archivo
         char nombreArchivo[500];
-        sprintf(nombreArchivo, "C:\\Users\\eeval\\Desktop\\informatica ii\\test_desafio1\\datasetDesarrollo\\Encriptado%d.txt", i);
+        sprintf(nombreArchivo, "..\\..\\datasetDesarrollo\\Encriptado%d.txt", i);
 
         cout << "\nProcesando archivo: " << nombreArchivo << endl;
 
