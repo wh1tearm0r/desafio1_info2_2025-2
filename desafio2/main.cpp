@@ -30,9 +30,8 @@ char* leerArchivoEnArreglo(const char* nombreArchivo, int& tamano) {
 }
 
 unsigned char rotarDerecha(unsigned char byte, int posiciones) {
-    posiciones &= 7;
-    if (posiciones == 0) return byte;
-    return (unsigned char)(((byte >> posiciones) | (byte << (8 - posiciones))) & 0xFF);
+    posiciones = posiciones % 8;
+    return (byte >> posiciones) | (byte << (8 - posiciones));
 }
 
 int main()
