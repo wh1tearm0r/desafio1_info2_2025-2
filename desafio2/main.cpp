@@ -34,6 +34,65 @@ unsigned char rotarDerecha(unsigned char byte, int posiciones) {
     return (byte >> posiciones) | (byte << (8 - posiciones));
 }
 
+
+// Función mejorada para filtrar caracteres nulos con múltiples opciones
+char* filtrarCaracteresNulos(const char* decodificado, int tamano) {
+    bool mantenerNulosConsecutivos = false;
+
+    // Validar parámetros de entrada
+    if (decodificado == nullptr || tamano <= 0) {
+        return nullptr;
+    }
+
+    // Contar caracteres válidos para optimizar la memoria
+    int caracteresValidos = 0;
+    for (int i = 0; i < tamano; i++) {
+        if (decodificado[i] != '\0') {
+            caracteresValidos++;
+        } else if (mantenerNulosConsecutivos && i + 1 < tamano && decodificado[i + 1] == '\0') {
+            caracteresValidos++; // Solo contar el primer nulo de una secuencia
+        }
+    }
+
+    // Crear arreglo filtrado con el tamaño exacto necesario
+    char* filtrado = new char[caracteresValidos + 1]; // +1 para el carácter nulo final
+
+    int j = 0;
+    for (int i = 0; i < tamano; i++) {
+        if (decodificado[i] != '\0') {
+            filtrado[j++] = decodificado[i];
+        }
+        else if (mantenerNulosConsecutivos) {
+            if (j == 0 || filtrado[j - 1] != '\0') { // Evitar duplicados
+                filtrado[j++] = '0';
+            }
+        }
+    }
+
+    filtrado[j] = '\0'; // Asegurar que termine con carácter nulo
+
+    return filtrado;
+}
+
+bool esRLE (const char* texto) {
+    /*La logica de la funcion es la siguiente:
+     * Se recorre el arreglo filtrado caracter por caracter, tomando dos caracteres, uno verificando el numero y otro la letra*/
+    int i = 0;
+    while (texto[i] != '\0') {
+        // Verificar que el primer caracter sea un dígito
+        if (texto[i] < '0' || texto[i] > '9') {
+            return false; // No es un dígito
+        }
+        i++;
+        // Verificar que el siguiente caracter sea una letra (mayúscula o minúscula)
+        if (!((texto[i] >= 'A' && texto[i] <= 'Z') || (texto[i] >= 'a' && texto[i] <= 'z'))) {
+            return false; // No es una letra
+        }
+        i++;
+    }
+    return true;
+}
+
 int main()
 {
     int cantidadArchivos = 0;
@@ -73,21 +132,28 @@ int main()
                         unsigned char byteOriginal = static_cast<unsigned char>(contenido[j]);
                         unsigned char byteXOR = byteOriginal ^ static_cast<unsigned char>(mascara);
                         unsigned char byteRotado = rotarDerecha(byteXOR, rotacion);
-                        dec[j] = static_cast<char>(byteRotado);
-
+                        if (byteRotado == 0) {
+                            dec[j] = '\0'; // Mantener el carácter nulo
+                        }
+                        else if (byteRotado < 48) {
+                            byteRotado += 48; // Ajuste para que el numero esté en el rango imprimible
+                            dec[j] = static_cast<char>(byteRotado);
+                        }
+                        else {
+                            dec[j] = static_cast<char>(byteRotado);
+                        }
                     }
                     dec[tamano] = '\0'; // Agregar carácter nulo al final
 
-                    // Aquí se debería verificar si 'dec' es un texto válido en RLE o LZ78
-
-                    //Debugging para probar con una mascara y rotacion especifica
-                    if (mascara == 0x5A && rotacion == 3) { // Cambiar estos valores para probar diferentes combinaciones
-                        cout << "\nTexto desencriptado con mascara " << mascara << " y rotacion " << rotacion << ":\n";
-                        cout << "----------------------------------------" << endl;
-                        cout << dec << endl;
-                        cout << "----------------------------------------" << endl;
-                        encontrado = true; // Salir de los bucles
+                    // debugging para probar la verificacion de rle
+                    char* filtrado = filtrarCaracteresNulos(dec, tamano);
+                    if (esRLE(filtrado)) {
+                        cout << "¡Texto válido en RLE encontrado!" << endl;
+                        cout << "Mascara: " << mascara << ", Rotacion: " << rotacion << ", Texto RLE: " << filtrado << endl;
+                        encontrado = true; // Salir de ambos bucles
                     }
+
+                    delete[] filtrado;
                 }
             }
 
