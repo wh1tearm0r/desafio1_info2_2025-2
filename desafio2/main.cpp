@@ -74,6 +74,34 @@ char* filtrarCaracteresNulos(const char* decodificado, int tamano) {
     return filtrado;
 }
 
+char* descompresionRLE(const char* comprimido, char* descomprimido) {
+    /*
+    Funcion que permitira aplicar descompresion por el metodo RLE
+    */
+    int i = 0, j = 0;
+
+    while (comprimido[i] != '\0'){
+        int num = 0;
+
+        // Mientras que el caracter que se este leyendo sea un numero
+        while(comprimido[i] >= '0' && comprimido[i] <= '9'){
+            num =  num * 10 + (comprimido[i] - '0');
+            i++;
+        }
+
+        char simbolo = comprimido[i];
+        i++;
+
+        for(int k = 0; k < num; k++){
+            descomprimido[j] = simbolo;
+            j++;
+        }
+    }
+    descomprimido[j] = '\0'; //que termine en caracter nulo para cortar la cadena
+
+    return descomprimido;
+}
+
 bool esRLE (const char* texto) {
     /*La logica de la funcion es la siguiente:
      * Se recorre el arreglo filtrado caracter por caracter, tomando dos caracteres, uno verificando el numero y otro la letra*/
@@ -145,15 +173,20 @@ int main()
                     }
                     dec[tamano] = '\0'; // Agregar carácter nulo al final
 
-                    // debugging para probar la verificacion de rle
+                    //for (int k = 0; k <= 2 && !encontrado; k++)
                     char* filtrado = filtrarCaracteresNulos(dec, tamano);
-                    if (esRLE(filtrado)) {
-                        cout << "¡Texto válido en RLE encontrado!" << endl;
-                        cout << "Mascara: " << mascara << ", Rotacion: " << rotacion << ", Texto RLE: " << filtrado << endl;
+                    if (esRLE(filtrado)){
+                        char* descomprimido = new char[tamano*4];
+                        char* txtfinal = descompresionRLE(filtrado, descomprimido);
+                        cout << "Mascara usada: " << mascara << endl << "Rotacion de bits aplicada: " << rotacion << endl << "Texto Original: " << txtfinal << endl;
                         encontrado = true; // Salir de ambos bucles
+
+                        delete[] descomprimido;
+
                     }
 
                     delete[] filtrado;
+
                 }
             }
 
