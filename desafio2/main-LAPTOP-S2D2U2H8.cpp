@@ -230,7 +230,7 @@ int main()
                         cout << "Mascara usada: " << mascara << endl << "Rotacion de bits aplicada: " << rotacion << endl  << "Formato de compresion usado: " << formato << endl << "Texto Original: " << txtfinal << endl;
                         encontrado = true; // Salir de ambos bucles
 
-                        delete[] descomprimido
+                        delete[] descomprimido;
                     }
                     else if() {
                         char* descomprimido = new char[tamano*4];
