@@ -19,7 +19,7 @@ char* leerArchivoEnArreglo(const char* nombreArchivo, int& tamano) {
 
     // Crear arreglo dinámico de caracteres
     char* contenido = new char[tamano + 1]; // +1 para el carácter nulo
-xx
+
     // Leer el contenido del archivo
     archivo.read(contenido, tamano);
     contenido[tamano] = '\0'; // Agregar carácter nulo al final
@@ -103,7 +103,7 @@ char* descompresionRLE(const char* comprimido, char* descomprimido) {
 
 char* descompresionLZ78(const char* comprimido, char* descomprimido) {
 
-    const int espacios = 2000;
+    const int espacios = 5000;
     const int tamañomax = 500;
 
     char** dic = new char*[espacios];
@@ -156,12 +156,13 @@ char* descompresionLZ78(const char* comprimido, char* descomprimido) {
             cout << "Diccionario lleno, no se puede continuar." << endl;
             return descomprimido;
         }
-        tamañodic++;
+
         int m = 0;
         for (; nueva[m] != '\0'; m++) {
             dic[tamañodic][m] = nueva[m];
         }
         dic[tamañodic][m] = '\0';
+        tamañodic++;
     }
 
     for (int i = 0; i < espacios; i++) {
@@ -194,6 +195,24 @@ bool EstructuraValida (const char* texto) {
 
     return true;
 }
+
+bool EstructuraCompatibleLZ78(const char* texto) {
+    int i = 0;
+    while (texto[i] != '\0') {
+        // Leer índice
+        if (texto[i] < '0' || texto[i] > '9') return false;
+        while (texto[i] >= '0' && texto[i] <= '9') {
+            i++;
+        }
+
+        // Leer símbolo
+        if (texto[i] == '\0') return false;
+        if (!((texto[i] >= 32 && texto[i] <= 126))) return false; // símbolo imprimible
+        i++;
+    }
+    return true;
+}
+
 
 
 bool contienePista(const char* descomprimido, const char* pista) {
@@ -276,7 +295,6 @@ int main()
                     }
                     dec[tamano] = '\0'; // Agregar carácter nulo al final
 
-                    // for (int k = 0; k <= 2 && !encontrado; k++)
                     char* filtrado = filtrarCaracteresNulos(dec, tamano);
 
                     if (EstructuraValida(filtrado)){
@@ -292,8 +310,11 @@ int main()
 
                         delete[] descomprimidoRLE;
                     }
-                    if (EstructuraValida(filtrado)) {
+
+                    else if (EstructuraCompatibleLZ78(filtrado)){
+                        cout << "Compatible con lz78: " << filtrado << endl;
                         char* descomprimidoLZ78 = new char[tamano*10];
+                        cout << "decomprimido con lz78: " << *descomprimidoLZ78 << endl;
                         char* txtfinal = descompresionLZ78(filtrado, descomprimidoLZ78);
 
                         if(contienePista(txtfinal, contenidoP)) {
@@ -303,9 +324,9 @@ int main()
                             encontrado = true;
                         }
                         delete[] descomprimidoLZ78;
-                    }
 
-                    delete[] filtrado;
+                        delete[] filtrado;
+                     }
 
                 }
             }
