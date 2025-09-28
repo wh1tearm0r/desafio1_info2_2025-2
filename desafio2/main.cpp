@@ -311,11 +311,11 @@ int main()
                         delete[] descomprimidoRLE;
                     }
 
-                    else if (EstructuraCompatibleLZ78(filtrado)){
-                        cout << "Compatible con lz78: " << filtrado << endl;
+                    if (EstructuraCompatibleLZ78(dec)){
+                        // cout << "Compatible con lz78: " << filtrado << endl;
                         char* descomprimidoLZ78 = new char[tamano*10];
-                        cout << "decomprimido con lz78: " << *descomprimidoLZ78 << endl;
                         char* txtfinal = descompresionLZ78(filtrado, descomprimidoLZ78);
+                        cout << "decomprimido con lz78: " << txtfinal << endl;
 
                         if(contienePista(txtfinal, contenidoP)) {
 
