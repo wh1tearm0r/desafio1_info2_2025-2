@@ -110,8 +110,9 @@ char* descompresionLZ78(const char* comprimido, char* descomprimido) {
     for (int i = 0; i < espacios; i++) {
         dic[i] = new char[tamañomax];
     }
+    dic[0][0] = '\0';
 
-    int tamañodic = 0;
+    int tamañodic = 1;
 
     int i = 0, j = 0;
 
@@ -137,7 +138,7 @@ char* descompresionLZ78(const char* comprimido, char* descomprimido) {
         }
         else if (indice > 0 && indice <= tamañodic) {
             for (int l = 0; dic[indice - 1][l] != '\0'; l++ ) {
-                nueva[k++] = dic[indice - 1][l];
+                nueva[k++] = dic[indice][l];
             }
             nueva[k++] = simbolo;
             nueva[k] = '\0';
@@ -172,6 +173,7 @@ char* descompresionLZ78(const char* comprimido, char* descomprimido) {
 
     return descomprimido;
 }
+
 
 
 bool EstructuraValida (const char* texto) {
@@ -312,10 +314,8 @@ int main()
                     }
 
                     if (EstructuraCompatibleLZ78(dec)){
-                        // cout << "Compatible con lz78: " << filtrado << endl;
                         char* descomprimidoLZ78 = new char[tamano*10];
                         char* txtfinal = descompresionLZ78(filtrado, descomprimidoLZ78);
-                        cout << "decomprimido con lz78: " << txtfinal << endl;
 
                         if(contienePista(txtfinal, contenidoP)) {
 
