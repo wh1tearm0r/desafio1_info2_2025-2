@@ -144,7 +144,6 @@ char* descompresionLZ78(const char* comprimido, char* descomprimido) {
             nueva[k] = '\0';
         }
         else {
-            cout << "el indice ingresado es mayor de lo que se puede procesar" << endl;
             return descomprimido;
         }
 
