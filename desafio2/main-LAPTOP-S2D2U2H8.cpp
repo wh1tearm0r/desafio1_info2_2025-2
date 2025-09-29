@@ -83,6 +83,7 @@ char* descompresionRLE(const char* comprimido, char* descomprimido) {
     while (comprimido[i] != '\0'){
         int num = 0;
 
+        // Mientras que el caracter que se este leyendo sea un numero
         while(comprimido[i] >= '1' && comprimido[i] <= '9'){
             num =  num * 10 + (comprimido[i] - '0');
             i++;
@@ -96,23 +97,17 @@ char* descompresionRLE(const char* comprimido, char* descomprimido) {
             j++;
         }
     }
-    descomprimido[j] = '\0';
+    descomprimido[j] = '\0'; //que termine en caracter nulo para cortar la cadena
 
     return descomprimido;
 }
 
 char* descompresionLZ78(const char* comprimido, char* descomprimido) {
 
-    const int espacios = 5000;
-    const int tamañomax = 500;
-
-    char** dic = new char*[espacios];
-    for (int i = 0; i < espacios; i++) {
-        dic[i] = new char[tamañomax];
-    }
-    dic[0][0] = '\0';
-
-    int tamañodic = 1;
+    const int espacios = 512;
+    const int tamañomax = 1024;
+    char dic[espacios][tamañomax];
+    int tamañodic = 0;
 
     int i = 0, j = 0;
 
@@ -123,123 +118,56 @@ char* descompresionLZ78(const char* comprimido, char* descomprimido) {
             i++;
         }
 
-        if (comprimido[i] == '\0') {
-            break;
-        }
         char simbolo = comprimido[i];
         i++;
 
         char nueva[tamañomax];
         int k = 0;
 
-        if (indice == 0) {
-            nueva[k++] = simbolo;
-            nueva[k] = '\0';
-        }
-        else if (indice > 0 && indice <= tamañodic) {
-            for (int l = 0; dic[indice - 1][l] != '\0'; l++ ) {
+        if (indice > 0) {
+            for (int l = 0; dic[indice][l] != '\0'; l++ ) {
                 nueva[k++] = dic[indice][l];
             }
-            nueva[k++] = simbolo;
-            nueva[k] = '\0';
         }
-        else {
-            cout << "el indice ingresado es mayor de lo que se puede procesar" << endl;
-            return descomprimido;
-        }
+
+        nueva[k++] = simbolo;
+        nueva[k] = '\0';
 
         for (int m = 0; nueva[m] != '\0'; m++) {
             descomprimido[j++] = nueva[m];
         }
         descomprimido[j] = '\0';
 
-        if (tamañodic >= espacios) {
-            cout << "Diccionario lleno, no se puede continuar." << endl;
-            return descomprimido;
-        }
-
+        tamañodic++;
         int m = 0;
         for (; nueva[m] != '\0'; m++) {
             dic[tamañodic][m] = nueva[m];
         }
         dic[tamañodic][m] = '\0';
-        tamañodic++;
     }
-
-    for (int i = 0; i < espacios; i++) {
-        delete[] dic[i];
-    }
-    delete[] dic;
 
     return descomprimido;
 }
 
 
-
-bool EstructuraValida (const char* texto) {
+bool esRLE (const char* texto) {
     /*La logica de la funcion es la siguiente:
      * Se recorre el arreglo filtrado caracter por caracter, tomando dos caracteres, uno verificando el numero y otro la letra*/
-
     int i = 0;
     while (texto[i] != '\0') {
-        if (texto[i] >= '0' && texto[i] <= '9') {
-            while (texto[i] >= '0' && texto[i] <= '9') {
-                i++;
-            }
+        // Verificar que el primer caracter sea un dígito
+        if (texto[i] < '0' || texto[i] > '9') {
+            return false; // No es un dígito
         }
-
-        if ((texto[i] >= 'A' && texto[i] <= 'Z') || (texto[i] >= 'a' && texto[i] <= 'z')) {
-            i++;
-        } else {
-            return false;
+        i++;
+        // Verificar que el siguiente caracter sea una letra (mayúscula o minúscula)
+        if (!((texto[i] >= 'A' && texto[i] <= 'Z') || (texto[i] >= 'a' && texto[i] <= 'z'))) {
+            return false; // No es una letra
         }
-    }
-
-    return true;
-}
-
-bool EstructuraCompatibleLZ78(const char* texto) {
-    int i = 0;
-    while (texto[i] != '\0') {
-        // Leer índice
-        if (texto[i] < '0' || texto[i] > '9') return false;
-        while (texto[i] >= '0' && texto[i] <= '9') {
-            i++;
-        }
-
-        // Leer símbolo
-        if (texto[i] == '\0') return false;
-        if (!((texto[i] >= 32 && texto[i] <= 126))) return false; // símbolo imprimible
         i++;
     }
     return true;
 }
-
-
-
-bool contienePista(const char* descomprimido, const char* pista) {
-    int i = 0, j = 0;
-
-    while (descomprimido[i] != '\0') {
-        j = 0;
-        int k = i;
-
-        while (descomprimido[k] != '\0' && pista[j] != '\0' && descomprimido[k] == pista[j]) {
-            k++;
-            j++;
-        }
-
-        if (pista[j] == '\0') {
-
-            return true;
-        }
-
-        i++;
-    }
-
-    return false;
-}
-
 
 int main()
 {
@@ -250,17 +178,13 @@ int main()
     cin >> cantidadArchivos;
 
     for (int i = 1; i <= cantidadArchivos; i++) { // En este ciclo la idea es realizar los procesos de desencriptación archivo por archivo
-        char nombreArchivo[50];
-        char nombrePista[50];
+        char nombreArchivo[500];
         sprintf(nombreArchivo, "..\\..\\datasetDesarrollo\\Encriptado%d.txt", i);
-        sprintf(nombrePista, "..\\..\\datasetDesarrollo\\Pista%d.txt", i);
 
         cout << "\nProcesando archivo: " << nombreArchivo << endl;
 
         // Escribir el contenido del archivo en un arreglo dinámico
-        char* contenidoP = leerArchivoEnArreglo(nombrePista, tamano);
         char* contenido = leerArchivoEnArreglo(nombreArchivo, tamano);
-
 
         if (contenido != nullptr) {
             cout << "Archivo leído exitosamente!" << endl;
@@ -297,36 +221,28 @@ int main()
                     }
                     dec[tamano] = '\0'; // Agregar carácter nulo al final
 
+                    // for (int k = 0; k <= 2 && !encontrado; k++)
                     char* filtrado = filtrarCaracteresNulos(dec, tamano);
+                    if (esRLE(filtrado)){
+                        char* descomprimido = new char[tamano*4];
+                        char* txtfinal = descompresionRLE(filtrado, descomprimido);
+                        char formato[4] = "RLE";
+                        cout << "Mascara usada: " << mascara << endl << "Rotacion de bits aplicada: " << rotacion << endl  << "Formato de compresion usado: " << formato << endl << "Texto Original: " << txtfinal << endl;
+                        encontrado = true; // Salir de ambos bucles
 
-                    if (EstructuraValida(filtrado)){
-                        char* descomprimidoRLE = new char[tamano*4];
-                        char* txtfinal = descompresionRLE(filtrado, descomprimidoRLE);
+                        delete[] descomprimido;
+                    }
+                    else if() {
+                        char* descomprimido = new char[tamano*4];
+                        char* txtfinal = descompresionLz78(filtrado, descomprimido);
+                        char formato[5] = "LZ78";
+                        cout << "Mascara usada: " << mascara << endl << "Rotacion de bits aplicada: " << rotacion << endl  << "Formato de compresion usado: " << formato << endl << "Texto Original: " << txtfinal << endl;
+                        encontrado = true;
 
-                        if(contienePista(txtfinal, contenidoP)) {
-
-                            char formato[4] = "RLE";
-                            cout << "Mascara usada: " << mascara << endl << "Rotacion de bits aplicada: " << rotacion << endl  << "Formato de compresion usado: " << formato << endl << "Texto Original: " << txtfinal << endl;
-                            encontrado = true;
-                        }
-
-                        delete[] descomprimidoRLE;
+                        delete[] descomprimido;
                     }
 
-                    if (EstructuraCompatibleLZ78(dec)){
-                        char* descomprimidoLZ78 = new char[tamano*10];
-                        char* txtfinal = descompresionLZ78(filtrado, descomprimidoLZ78);
-
-                        if(contienePista(txtfinal, contenidoP)) {
-
-                            char formato[5] = "LZ78";
-                            cout << "Mascara usada: " << mascara << endl << "Rotacion de bits aplicada: " << rotacion << endl  << "Formato de compresion usado: " << formato << endl << "Texto Original: " << txtfinal << endl;
-                            encontrado = true;
-                        }
-                        delete[] descomprimidoLZ78;
-
-                        delete[] filtrado;
-                     }
+                    delete[] filtrado;
 
                 }
             }
@@ -334,7 +250,6 @@ int main()
             // Liberar memoria del arreglo dinámico
             delete[] contenido;
             delete[] dec;
-
         } else {
             cout << "No se pudo leer el archivo." << endl;
         }
